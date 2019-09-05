@@ -3,6 +3,7 @@
 #  Made for Gentoo. lld can be emerged from sys-devel/lld, Clang's linker.
 #  LLD is supported by GCC 9 as an alternative linker. When using -flto
 #  or -flto=thin, Clang will automatically multithread based on CPUs detected.
+#  Incompatible with Prefix and shells lacking GNU extensions.
 
 if [[ "$(ld -v | awk '{print $2}')" == "ld" ]]; then
 		export DEFLD="bfd"
@@ -50,7 +51,7 @@ do
 				echo "Setting ${1} as the default linker." ;
 				ln -sf  /usr/bin/ld.${l} /usr/bin/ld  ;
 				sed -i  "/^{\-\\|C\|f}/s/bfd\|gold\|lld/${1}/" /etc/portage/make.conf;
-			elif [[ $UID == "0" ]]; then
+			elif [[ $UID != "0" ]]; then
 				echo "Changing the linker requires root permissions. No changes were made.";
 			else
 				echo "${1} was not found in the standard directory. No changes were made."
