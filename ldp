@@ -1,0 +1,65 @@
+#!/bin/bash
+
+#  Made for Gentoo. lld can be emerged from sys-devel/lld, Clang's linker.
+#  LLD is supported by GCC 9 as an alternative linker. When using -flto
+#  or -flto=thin, Clang will automatically multithread based on CPUs detected.
+
+if [[ "$(ld -v | awk '{print $2}')" == "ld" ]]; then
+		export DEFLD="bfd"
+	elif [[ "$(ld -v | awk '{print $2}')" == "gold" ]]; then
+		export DEFLD="gold";
+	else
+		export DEFLD=$(readlink /usr/bin/ld | cut -nc 13-)
+fi
+
+linkcheck()
+{
+if [[ $(grep -v "\#\|USE" /etc/portage/make.conf | grep -o '\-\fuse\-\linker\-\plugin') == '-fuse-linker-plugin' ]]; then
+		echo -e "\n-fuse-linker-plugin is being used in make.conf."
+	elif test -n $(grep -v "\#\|USE" /etc/portage/make.conf | grep -o '\-\fuse\-\ld'); then
+		echo -e "\nLinker in make.conf: $(grep -v "\#\|USE" /etc/portage/make.conf | grep -o  "\-\fuse\-\ld\=.*d" | cut -nc 10-)";
+	else
+		exit 1
+fi
+}
+
+
+help()
+{
+echo "Options to change the default system linker.
+Usage: ldp ${DEFLD} -- switches linker; bfd, gold, and lld are supported.
+           ldp -- outputs the /usr/bin/ld symlink and linker in make.conf, if defined.
+
+If -fuse-ld= is explicitly set in make.conf instead of
+-fuse-linker-plugin, that will be replaced, too.
+
+Note: Incompatible with Prefix and shells lacking GNU extensions."
+}
+
+
+for l in "${1}"
+do
+
+	case "${1}" in
+	"-h" | "--help")
+		help
+		;;
+
+	"bfd" | "gold" |  "lld")
+		if [ -f /usr/bin/ld.${1} ] && [[ $UID == "0" ]]; then
+				echo "Setting ${1} as the default linker." ;
+				ln -sf  /usr/bin/ld.${l} /usr/bin/ld  ;
+				sed -i  "/^{\-\\|C\|f}/s/bfd\|gold\|lld/${1}/" /etc/portage/make.conf;
+			elif [[ $UID == "0" ]]; then
+				echo "Changing the linker requires root permissions. No changes were made.";
+			else
+				echo "${1} was not found in the standard directory. No changes were made."
+			exit 1
+		fi
+		;;
+
+	*)
+		echo -e "Symlink /usr/bin/ld: ${DEFLD}\c";
+		linkcheck
+	esac
+done
