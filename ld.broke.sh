@@ -6,10 +6,10 @@
 # that the speed of linking with LLD makes up for the time spent making per-package CFLAGS every 5min.
 # Default package input is the last package emerged and can be deleted and replaced.
 
-set LAST=$(awk 'f{print;f=0} /"favorites": \[/{f=1}' /var/cache/edb/mtimedb | tr -d '"' | tr -d [:blank:] | head -n1)
+export LAST=$(awk 'f{print;f=0} /"favorites": \[/{f=1}' /var/cache/edb/mtimedb | tr -d '"' | tr -d [:blank:] | head -n1)
 
-if [[ $LAST == "@*" ]]; then
-        unset $LAST
+if [[ $LAST == @* ]]; then
+        unset LAST
 fi
 
 read -p "Package that broke? " -i "${LAST}" -e GDI
