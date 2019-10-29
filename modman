@@ -1,0 +1,55 @@
+#!/bin/bash
+
+help() {
+echo -e "
+	 help -- Shows this
+	 list -- Output a list of loadable modules for the running kernel
+	 mist -- Output a list of loadable modules, sans modules already loaded
+[module name] -- Shows module parameters for the named module (if it exists and is not built-in)
+"
+}
+
+list() {
+	find /lib/modules/`uname -r` -type f | grep ko | sed 's/.*\/\(.*\)\.ko/\1/g' | sort
+}
+
+mist() {
+	find /lib/modules/`uname -r` -type f | grep ko | sed 's/.*\/\(.*\)\.ko/\1/g' | sort | \
+	grep -v "$(lsmod | tail -n +2 | sed 's/\ .*//g')"
+}
+
+hmm() {
+	[ -n $(find /lib/modules/`uname -r` -type f -name "${ret}") ] &&
+	modinfo "${ret}" | grep 'parm:' || help
+}
+
+# This also works, but modules.order does not contain out-of-tree modules
+# sed 's/^.*\///g' /lib/modules/`uname -r`/modules.order | sort | awk '{ORS=NR % 2? "\t": "\n"; print}'
+# What the above does:
+#  Uses sed on the running kernel's 'modules.order' file to remove .ko from the module names
+#  Ssort it by name with sort
+#  Uses awk to print it in two columns separated by a tab. ORS -> field separator ; NR -> total number of inputs
+#  awk '{ORS=NR % 2? "\t": "\n"; print}' | 2 is the number of 'columns' ; \t is what separates each ; \n is newline
+
+
+# This works as well but I can't figure out how to make the tabs align; the output is ugly
+# find /lib/modules/`uname -r` -type f | grep ko | sed 's/.*\/\(.*\)\.ko/\1/g' | sort | paste - -
+# What the above does:
+#  Uses find with the option of only looking for files on the running kernel's module directory
+#  Greps for any file with 'ko' in it so that only modules are shown
+#  Sed is used to remove '.ko' from the module names and remove the directories from the output (it's possible to config grep to not show directories too)
+#  Sort puts the modules in alphabetical order
+#  Paste, with '- -', shows the output in two columns, and by default is separated by a TAB
+
+export ret="${@}"
+
+case ${ret} in
+	'list')
+		list
+	;;
+	'mist')
+		mist
+	;;
+	*)
+		hmm
+esac
