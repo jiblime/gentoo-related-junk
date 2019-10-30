@@ -5,8 +5,12 @@ echo -e "
 	 help -- Shows this
 	 list -- Output a list of loadable modules for the running kernel
 	 mist -- Output a list of loadable modules, sans modules already loaded
+ ls [pattern] -- Alias for './modman list | grep \$@'
+ ms [pattern] -- Alias for './modman mist | grep \$@'
 [module name] -- Shows module parameters for the named module (if it exists and is not built-in)
+		 If possible, params will be taken from /sys/module to print the current value
 "
+exit
 }
 
 list() {
@@ -18,9 +22,27 @@ mist() {
 	grep -v "$(lsmod | tail -n +2 | sed 's/\ .*//g')"
 }
 
+lsgrep() {
+	[ "${ret}" == "ls" ] &&
+	list | grep "${ter}" ||
+	mist | grep "${ter}"
+}
+
 hmm() {
-	[ -n $(find /lib/modules/`uname -r` -type f -name "${ret}") ] &&
-	modinfo "${ret}" | grep 'parm:' || help
+	[ -z "${ret}" ] && help
+
+	LOADED="/sys/module/${ret}/parameters"
+	MODDIR="/lib/modules/`uname -r`"
+
+	if [[ -e "${LOADED}" ]] ; then
+		! [[ -r "${LOADED}"/* ]] && sudo tail -n +1 "${LOADED}"/* ||  tail -n +1 "${LOADED}"/*
+	fi
+
+	! [[ -e "${LOADED}" ]] && [[ -n $(grep -o "\/${ret}\.ko" "${MODDIR}"/modules.builtin) ]] &&
+	echo "The module is built in but has no parameters to set"
+
+	[[ -n $(find "${MODDIR}" -type f -name "${ret}") ]] &&
+	modinfo "${ret}" | grep 'parm:' || echo "It seems I was unable to find the specified module" ; help
 }
 
 # This also works, but modules.order does not contain out-of-tree modules
@@ -41,9 +63,13 @@ hmm() {
 #  Sort puts the modules in alphabetical order
 #  Paste, with '- -', shows the output in two columns, and by default is separated by a TAB
 
-export ret="${@}"
+export ret="${1}"
+export ter="${2}"
 
 case ${ret} in
+	'ls'*|'ms'*)
+		lsgrep
+	;;
 	'list')
 		list
 	;;
