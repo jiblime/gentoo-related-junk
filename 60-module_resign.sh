@@ -5,12 +5,18 @@
 # Used with app-portage/portage-bashrc-mv from 'mv' overlay.
 # Placed in /etc/portage/bashrc.d/
 
-resign()
+modsign_check() {
+# Check if a linux-mod.eclass function exists. If it does, continue.
+# There should be a better way to do this...
+	declare -f linux-mod_pkg_setup >/dev/null && modsign_env || return
+}
+
+modsign_env()
 {
 	if [[ -n $(grep CONFIG_MODULE_SIG=y /usr/src/linux/.config) ]]; then
-		einfo 'Signing installed modules.';
+		elog 'Signing installed modules.';
 	else
-		ewarn 'CONFIG_MODULE_SIG is not set. Skipping module signing.' && return
+		einfo 'CONFIG_MODULE_SIG is not set. Skipping module signing.' && return
 	fi
 
 # sig_kpem and sig_cert should be adjusted for
@@ -27,21 +33,10 @@ resign()
 		/usr/src/linux/certs/signing_key.x509"
 
 	sig_done="${sig_hash} ${sig_kpem} ${sig_cert}"
-
-
-# Add packages that should be resigned here.
-# Ideally the script should be checking if a function
-# from linux-mod.eclass is defined to make it work for
-# anything that signs a module but without checking if
-# it works for all of them I'd rather not chance it.
-	case "${CATEGORY}/${PN}" in
-		'x11-drivers/nvidia-drivers'|'app-emulation/virtualbox-modules')
-			postinst_resign
-			;;
-	esac
+	modsign_postinst
 }
 
-postinst_resign()
+modsign_postinst()
 {
 #	/var/db/repos/gentoo/eclass/linux-mod.eclass
         local libdir srcdir objdir i n
@@ -66,7 +61,7 @@ postinst_resign()
 	done
 }
 
-BashrcdPhase postinst resign
+#BashrcdPhase postinst modsign_check
 
 # To get the directory and module names that should be signed,
 # use app-portage/gentoolkit to view its installed location or ebuild.

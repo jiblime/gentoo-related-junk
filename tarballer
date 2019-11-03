@@ -1,0 +1,13 @@
+#!/bin/bash
+
+INFO=$(curl -s http://distfiles.gentoo.org/releases/amd64/autobuilds/latest-stage3-amd64-systemd.txt)
+# Make this case statement
+
+WGET=$(echo "${INFO}" | awk 'match($0,/[0-9].*bz2/) { print substr($0,RSTART,RLENGTH) }')
+DATE=$(echo "${INFO}" | head -n 1)
+
+echo -e "Stage 3 amd64 systemd:${DATE#\#}\n"
+
+read -p "Press any key to download. Ctrl + C to cancel"
+
+wget "http://distfiles.gentoo.org/releases/amd64/autobuilds/${WGET}"
