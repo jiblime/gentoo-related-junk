@@ -1,4 +1,4 @@
-media-gfx/zbar# emerge -1av $(qlist -IC dev-qt)
+emerge -1av $(qlist -IC dev-qt)
 # Rebuild the qt libraries for your preferred qt version. Mask unwanted versions appropriately.
 # Notes: Do not mask: dev-qt/qtchooser or any package that does not follow the standard versioning in the dev-qt/ ca>
 
