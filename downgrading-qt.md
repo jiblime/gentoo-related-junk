@@ -25,6 +25,7 @@ Usage: ./the-name-you-want-to-give-it {CATEGORY}
 
 Example: ./make-sure-to-chmod-x-it dev-qt
 
+NOTE: It's not masking PyQt5 properly. You've got to do that yourself.
 ```
 #!/bin/bash
 
