@@ -1,3 +1,5 @@
+Attach files by dragging & dropping, selecting or pasting them.
+
 Rebuild the qt libraries for your preferred qt version. Mask unwanted versions appropriately.
 
 1) Rebuild the dev-qt library, which will change the shared library version tags.
@@ -7,6 +9,10 @@ Rebuild the qt libraries for your preferred qt version. Mask unwanted versions a
 2.1) Rebuild other libraries that are linked to dev-qt prior to kde-apps
 
 3) Rebuild kde-apps
+
+4) 1emerge -pv $(eix -\# -I -U qt5)`
+
+Super quick note: PyQt5 >5.13 works with 5.12, ICE on the 5.12* ebuilds
 
 ```
 emerge -1v $(qlist -IC dev-qt)
