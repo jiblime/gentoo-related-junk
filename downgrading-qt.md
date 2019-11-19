@@ -20,6 +20,7 @@ emerge -1v $(qlist -IC kde-frameworks)Then emerge this category to setup rebuild
 emerge -1v $(qlist -IC kde-plasma)
 emerge -1v dev-python/PyQt5 dev-python/PyQt5-sip app-crypt/qca media-gfx/zbar sys-auth/polkit-qt net-libs/accounts-qt dev-libs/libdbusmenu-qt app-text/poppler net-libs/signond media-gfx/zbar
 emerge -1v $(qlist -IC kde-apps)
+emerge -1v $(eix -\# -I -U qt5)
 ```
 
 If simply rebuilding the KDE ecosystem, this works:     
