@@ -1,4 +1,6 @@
 #!/bin/bash
+# This works by signing every module in the installed directory and isn't the best way if you're concerned about rogue modules
+
 
 # Automatically sign modules post-installation for kernels
 # built with CONFIG_MODULE_SIG and CONFIG_MODULE_SIG_FORCE.
@@ -61,7 +63,7 @@ modsign_postinst()
 	done
 }
 
-#BashrcdPhase postinst modsign_check
+BashrcdPhase postinst modsign_check
 
 # To get the directory and module names that should be signed,
 # use app-portage/gentoolkit to view its installed location or ebuild.
